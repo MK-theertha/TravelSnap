@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-
 import './index.css';
 import { ChakraProvider, extendTheme, ColorModeScript } from '@chakra-ui/react';
 import { mode } from '@chakra-ui/theme-tools';

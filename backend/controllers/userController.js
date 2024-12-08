@@ -10,61 +10,56 @@ import Post from '../models/postModel.js';
 import generateTokenAndSetCookie from '../utils/helpers/generateTokenAndSetCookie.js';
 
 const getUserProfile = async (req, res) => {
-  // We will fetch user profile either with username or userId
-  // query is either username or userId
   const { query } = req.params;
 
   try {
     let user;
-
-    // query is userId
     if (mongoose.Types.ObjectId.isValid(query)) {
       user = await User.findOne({ _id: query })
         .select('-password')
         .select('-updatedAt');
     } else {
-      // query is username
       user = await User.findOne({ username: query })
         .select('-password')
         .select('-updatedAt');
     }
 
     if (!user) return res.status(404).json({ error: 'User not found' });
-
     res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
-    console.log('Error in getUserProfile: ', err.message);
   }
 };
 
 const signupUser = async (req, res) => {
   try {
-    const { name, email, username, password } = req.body;
-    const user = await User.findOne({ $or: [{ email }, { username }] });
+    const { name, email, username, password, profilePic, bio } = req.body;
 
-    if (user) {
+    const userExists = await User.findOne({ $or: [{ email }, { username }] });
+    if (userExists) {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
     const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+    const emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
     const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${emailVerificationToken}`;
 
     const newUser = new User({
       name,
       email,
       username,
-      password: hashedPassword,
+      password,
+      profilePic: profilePic || '',
+      bio: bio || '',
       emailVerificationToken,
+      emailVerificationExpires,
+      isEmailVerified: false,
     });
+
     await newUser.save();
 
-    // Send verification email
     const transporter = nodemailer.createTransport({
-      service: 'Gmail', // or another email provider
+      service: 'Gmail',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -76,7 +71,7 @@ const signupUser = async (req, res) => {
       to: email,
       subject: 'Verify Your Email Address',
       html: `<p>Please verify your email by clicking the link below:</p>
-             <a href="${verificationUrl}">Verify Email</a>`,
+            <a href="${verificationUrl}">Verify Email</a>`,
     });
 
     res.status(201).json({
@@ -85,7 +80,41 @@ const signupUser = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
-    console.log('Error in signupUser: ', err.message);
+  }
+};
+
+const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Verification token is missing' });
+    }
+
+    const user = await User.findOne({
+      emailVerificationToken: token,
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: 'Invalid or expired verification token' });
+    }
+
+    // Check if the token has expired
+    if (new Date() > new Date(user.emailVerificationExpires)) {
+      return res.status(400).json({ error: 'Verification token has expired' });
+    }
+
+    user.isEmailVerified = true;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: 'Email verified successfully. You can now log in.' });
+  } catch (err) {
+    console.log('Error in verifyEmail:', err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -103,9 +132,7 @@ const loginUser = async (req, res) => {
     }
 
     if (!user.isEmailVerified) {
-      return res
-        .status(400)
-        .json({ error: 'Please verify your email to login.' });
+      return res.status(403).json({ error: 'Please verify your email first' });
     }
 
     generateTokenAndSetCookie(user._id, res);
@@ -120,7 +147,6 @@ const loginUser = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
-    console.log('Error in loginUser: ', error.message);
   }
 };
 
@@ -130,27 +156,6 @@ const logoutUser = (req, res) => {
     res.status(200).json({ message: 'User logged out successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
-    console.log('Error in signupUser: ', err.message);
-  }
-};
-
-const verifyEmail = async (req, res) => {
-  try {
-    const { token } = req.query;
-
-    const user = await User.findOne({ emailVerificationToken: token });
-    if (!user) {
-      return res.status(400).json({ error: 'Invalid or expired token' });
-    }
-
-    user.isEmailVerified = true;
-    user.emailVerificationToken = null;
-    await user.save();
-
-    res.status(200).json({ message: 'Email verified successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-    console.log('Error in verifyEmail: ', error.message);
   }
 };
 

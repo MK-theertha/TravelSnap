@@ -1,6 +1,7 @@
 import { Box, Container } from '@chakra-ui/react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
+import { useState } from 'react';
 
 import UserPage from './pages/UserPage';
 import PostPage from './pages/PostPage';
@@ -12,16 +13,20 @@ import UpdateProfilePage from './pages/UpdateProfilePage';
 import CreatePost from './components/CreatePost';
 import ChatPage from './pages/ChatPage';
 import { SettingsPage } from './pages/SettingsPage';
+import VerifyEmailPage from './pages/VerifyEmail';
+
 function App() {
   const user = useRecoilValue(userAtom);
-  console.log('PPPPPPPP', user);
   const { pathname } = useLocation();
+  const [isSignedUp, setIsSignedUp] = useState(false);
+  const shouldHideHeader = pathname === '/verify-email';
+
   return (
     <Box position={'relative'} w='full'>
       <Container
-        maxW={pathname === '/' ? { base: '620px', md: '900px' } : '620px'}
+        maxW={pathname === '/' ? { base: '1020px', md: '1020px' } : '1020px'}
       >
-        <Header />
+        {!isSignedUp && !shouldHideHeader && <Header />}
         <Routes>
           <Route
             path='/'
@@ -29,13 +34,21 @@ function App() {
           />
           <Route
             path='/auth'
-            element={!user ? <AuthPage /> : <Navigate to='/' />}
+            element={
+              !user ? (
+                <AuthPage
+                  setIsSignedUp={setIsSignedUp}
+                  isSignedUp={isSignedUp}
+                />
+              ) : (
+                <Navigate to='/' />
+              )
+            }
           />
           <Route
             path='/update'
             element={user ? <UpdateProfilePage /> : <Navigate to='/auth' />}
           />
-
           <Route
             path='/:username'
             element={
@@ -52,12 +65,13 @@ function App() {
           <Route path='/:username/post/:pid' element={<PostPage />} />
           <Route
             path='/chat'
-            element={user ? <ChatPage /> : <Navigate to={'/auth'} />}
+            element={user ? <ChatPage /> : <Navigate to='/auth' />}
           />
           <Route
             path='/settings'
-            element={user ? <SettingsPage /> : <Navigate to={'/auth'} />}
+            element={user ? <SettingsPage /> : <Navigate to='/auth' />}
           />
+          <Route path='/verify-email' element={<VerifyEmailPage />} />
         </Routes>
       </Container>
     </Box>

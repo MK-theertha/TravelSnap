@@ -1,8 +1,9 @@
 import { Box, Flex, Spinner } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { useRecoilState } from 'recoil';
+
 import useShowToast from '../hooks/useShowToast';
 import Post from '../components/Post';
-import { useRecoilState } from 'recoil';
 import postsAtom from '../atoms/postsAtom';
 import SuggestedUsers from '../components/SuggestedUsers';
 
@@ -45,7 +46,7 @@ const HomePage = () => {
           </Flex>
         )}
 
-        {posts.map((post) => (
+        {posts?.map((post) => (
           <Post key={post._id} post={post} postedBy={post.postedBy} />
         ))}
       </Box>

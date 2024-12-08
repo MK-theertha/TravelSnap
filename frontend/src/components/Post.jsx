@@ -1,13 +1,15 @@
 import { Avatar, Image, Box, Flex, Text } from '@chakra-ui/react';
 import { Link, useNavigate } from 'react-router-dom';
-import Actions from './Actions';
 import { useEffect, useState } from 'react';
-import useShowToast from '../hooks/useShowToast';
 import { formatDistanceToNow } from 'date-fns';
 import { DeleteIcon } from '@chakra-ui/icons';
 import { useRecoilState, useRecoilValue } from 'recoil';
+
+import useShowToast from '../hooks/useShowToast';
 import userAtom from '../atoms/userAtom';
 import postsAtom from '../atoms/postsAtom';
+
+import Actions from './Actions';
 
 const Post = ({ post, postedBy }) => {
   const [user, setUser] = useState(null);
@@ -122,7 +124,6 @@ const Post = ({ post, postedBy }) => {
               >
                 {user?.username}
               </Text>
-              <Image src='/verified.png' w={4} h={4} ml={1} />
             </Flex>
             <Flex gap={4} alignItems={'center'}>
               <Text
