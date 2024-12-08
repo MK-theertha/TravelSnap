@@ -50,6 +50,7 @@ export default [
       'import/no-extraneous-dependencies': 'error', // Ensure dependencies are correctly listed in package.json
       'import/no-cycle': 'error', // Prevent import cycles
       'import/order': ['error', { 'newlines-between': 'always' }], // Enforce a consistent order of imports
+      'react/prop-types': 'off',
     },
   },
 ];

@@ -12,7 +12,6 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { Button, useToast } from '@chakra-ui/react';
-import { BsInstagram } from 'react-icons/bs';
 import { CgMoreO } from 'react-icons/cg';
 import { useRecoilValue } from 'recoil';
 import { Link as RouterLink } from 'react-router-dom';
@@ -92,9 +91,6 @@ const UserHeader = ({ user }) => {
         </Flex>
         <Flex>
           <Box className='icon-container'>
-            <BsInstagram size={24} cursor={'pointer'} />
-          </Box>
-          <Box className='icon-container'>
             <Menu>
               <MenuButton>
                 <CgMoreO size={24} cursor={'pointer'} />
@@ -108,28 +104,6 @@ const UserHeader = ({ user }) => {
               </Portal>
             </Menu>
           </Box>
-        </Flex>
-      </Flex>
-
-      <Flex w={'full'}>
-        <Flex
-          flex={1}
-          borderBottom={'1.5px solid white'}
-          justifyContent={'center'}
-          pb='3'
-          cursor={'pointer'}
-        >
-          {/* <Text fontWeight={'bold'}> Threads</Text> */}
-        </Flex>
-        <Flex
-          flex={1}
-          borderBottom={'1px solid gray'}
-          justifyContent={'center'}
-          color={'gray.light'}
-          pb='3'
-          cursor={'pointer'}
-        >
-          <Text fontWeight={'bold'}> Replies</Text>
         </Flex>
       </Flex>
     </VStack>
